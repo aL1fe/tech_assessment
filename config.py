@@ -7,10 +7,10 @@ class CameraConfig(BaseModel):
 
 
 class Settings(BaseSettings):
-    
-    BASE_DELAY: int = 1
-    MAX_DELAY: int = 30
-    STABLE_THRESHOLD: int = 30
+    # Cameras config
+    BASE_DELAY: int = 1  # Base delay before reconnect (s)
+    MAX_DELAY: int = 30   # Max delay before reconnect (s)
+    STABLE_THRESHOLD: int = 300  # Threshold time for normal camera operation (s)
 
     CAMERA_CFG: dict[str, CameraConfig] = {
         "cam_01": CameraConfig(fps=15),
@@ -18,6 +18,11 @@ class Settings(BaseSettings):
         "cam_03": CameraConfig(fps=10),
         "cam_04": CameraConfig(fps=10),
     }
+
+    # Frame config
+    WIDTH: int= 3840
+    HEIGHT: int = 2160
+    CHANNELS: int = 3
     
     class Config:
         env_file = ".env"
