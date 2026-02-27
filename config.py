@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     WIDTH: int= 3840
     HEIGHT: int = 2160
     CHANNELS: int = 3
+    FRAME_SUBSAMPLE: int = 100  # TODO change to 6
     
     class Config:
         env_file = ".env"

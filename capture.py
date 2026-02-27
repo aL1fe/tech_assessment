@@ -1,0 +1,93 @@
+import logging
+import signal
+import time
+import threading
+from multiprocessing import Process, Queue
+from multiprocessing.shared_memory import SharedMemory
+import numpy as np
+
+from fake_camera import FakeCamera, CameraError
+from shared_ring_buffer import CameraBuffer
+from config import settings
+
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger("Capture")
+
+
+class CaptureModule:
+    def __init__(self, metadata_queue: Queue):
+        self.metadata_queue = metadata_queue
+        self._stop_event = threading.Event()
+
+
+    def _camera_worker(self, camera_id: str, fps: int):
+        buffer = CameraBuffer(camera_id, capacity=10, shape=(settings.HEIGHT, settings.WIDTH, settings.CHANNELS))
+        
+        retries = 0
+        try:
+            while not self._stop_event.is_set():
+                start_time = time.monotonic()
+                try:
+                    cam = FakeCamera(camera_id=camera_id, fps=fps)
+                    logger.info(f"[Capture] {camera_id} connected")                    
+                    while not self._stop_event.is_set():
+                        frame = cam.read()
+                        
+                        # Save every x frame to prevent overload Porcessing service
+                        if cam.frame_count % settings.FRAME_SUBSAMPLE == 0:
+                            slot_idx = buffer.put(frame)
+                            
+                            self.metadata_queue.put({
+                                "cam_id": camera_id,
+                                "slot": slot_idx,
+                                "ts": time.time(),
+                                "frame_num": cam.frame_count
+                            })
+                            
+                except CameraError as e:
+                    uptime = time.monotonic() - start_time
+                    logger.error(f"[{camera_id}] Disconnected after {uptime:.1f}s: {e}")
+                    retries = 0 if uptime >= settings.STABLE_THRESHOLD else retries + 1
+                    delay = min(settings.MAX_DELAY, settings.BASE_DELAY * 2 ** retries)
+                    logger.info(f"[{camera_id}] Reconnect in {delay:.1f}s")
+                    time.sleep(delay)
+                    stop_wait = time.monotonic() + delay
+                    while time.monotonic() < stop_wait and not self._stop_event.is_set():
+                        time.sleep(0.1)
+                # TODO develop mechanism to restart camera manually
+                except Exception as e:
+                    logger.exception(f"Critical error in thread {camera_id}: {e}")
+                    break
+        finally:
+            buffer.close()
+            logger.info(f"[{camera_id}] Worker thread exited")
+
+
+    def run(self):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        logger.info("Stage 1: Capture process started")
+        threads = []
+        
+        for cam_id, cfg in settings.CAMERA_CFG.items():
+            t = threading.Thread(
+                target=self._camera_worker, 
+                args=(cam_id, cfg.fps), 
+                daemon=True
+            )
+            t.start()
+            threads.append(t)
+            
+        try:
+            while any(t.is_alive() for t in threads):
+                time.sleep(0.5)
+        except (KeyboardInterrupt, SystemExit):
+            logger.info("Capture process received stop signal")
+        finally:
+            self._stop_event.set()
+            
+            for t in threads:
+                t.join(timeout=1.0)
+            
+            logger.info("Stage 1: Capture process finished")
+            
