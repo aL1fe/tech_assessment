@@ -6,3 +6,4 @@ __pycache__/
 .env*
 technical_assessment.pdf
 test.ipynb
+example.py
