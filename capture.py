@@ -52,9 +52,6 @@ class CaptureModule:
                     delay = min(settings.MAX_DELAY, settings.BASE_DELAY * 2 ** retries)
                     logger.info(f"[{camera_id}] Reconnect in {delay:.1f}s")
                     time.sleep(delay)
-                    stop_wait = time.monotonic() + delay
-                    while time.monotonic() < stop_wait and not self._stop_event.is_set():
-                        time.sleep(0.1)
                 # TODO develop mechanism to restart camera manually
                 except Exception as e:
                     logger.exception(f"Critical error in thread {camera_id}: {e}")
@@ -65,7 +62,6 @@ class CaptureModule:
 
 
     def run(self):
-        signal.signal(signal.SIGINT, signal.SIG_IGN)
         logger.info("Stage 1: Capture process started")
         threads = []
         

@@ -45,7 +45,7 @@ def main():
             capture_process.join(timeout=1.0)
 
     except KeyboardInterrupt:
-        print("[Main] Stopping...")
+        logger.info("[Main] Stopping...")
 
     finally:
         shutdown_process(capture_process, metadata_queue)      
