@@ -28,8 +28,8 @@ class CaptureModule:
         try:
             while not self._stop_event.is_set():
                 start_time = time.monotonic()
+                cam = FakeCamera(camera_id=camera_id, fps=fps)
                 try:
-                    cam = FakeCamera(camera_id=camera_id, fps=fps)
                     logger.info(f"[Capture] {camera_id} connected")                    
                     while not self._stop_event.is_set():
                         frame = cam.read()
@@ -38,12 +38,13 @@ class CaptureModule:
                         if cam.frame_count % settings.FRAME_SUBSAMPLE == 0:
                             slot_idx = buffer.put(frame)
                             
-                            self.metadata_queue.put({
-                                "cam_id": camera_id,
-                                "slot": slot_idx,
-                                "ts": time.time(),
-                                "frame_num": cam.frame_count
-                            })
+                            if not self.metadata_queue.full():
+                                self.metadata_queue.put({
+                                    "cam_id": camera_id,
+                                    "slot": slot_idx,
+                                    "ts": time.time(),
+                                    "frame_num": cam.frame_count
+                                })
                             
                 except CameraError as e:
                     uptime = time.monotonic() - start_time
@@ -56,6 +57,10 @@ class CaptureModule:
                 except Exception as e:
                     logger.exception(f"Critical error in thread {camera_id}: {e}")
                     break
+                finally:
+                    if cam:
+                        cam.release()
+
         finally:
             buffer.close()
             logger.info(f"[{camera_id}] Worker thread exited")
