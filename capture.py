@@ -1,10 +1,8 @@
 import logging
-import signal
 import time
 import threading
-from multiprocessing import Process, Queue
-from multiprocessing.shared_memory import SharedMemory
-import numpy as np
+from multiprocessing import Queue
+from multiprocessing.synchronize import Event
 
 from fake_camera import FakeCamera, CameraError
 from shared_ring_buffer import CameraBuffer
@@ -16,9 +14,9 @@ logger = logging.getLogger("Capture")
 
 
 class CaptureModule:
-    def __init__(self, metadata_queue: Queue):
+    def __init__(self, metadata_queue: Queue, stop_event: Event):
         self.metadata_queue = metadata_queue
-        self._stop_event = threading.Event()
+        self._stop_event = stop_event
 
 
     def _camera_worker(self, camera_id: str, fps: int):
