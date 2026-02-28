@@ -70,27 +70,9 @@ class CaptureModule:
 
     def run(self):
         logger.info("Stage 1: Capture process started")
-        threads = []
-        
         for cam_id, cfg in settings.CAMERA_CFG.items():
-            t = threading.Thread(
+            threading.Thread(
                 target=self._camera_worker, 
                 args=(cam_id, cfg.fps), 
-                daemon=True
-            )
-            t.start()
-            threads.append(t)
-            
-        try:
-            while any(t.is_alive() for t in threads):
-                time.sleep(0.5)
-        except (KeyboardInterrupt, SystemExit):
-            logger.info("Capture process received stop signal")
-        finally:
-            self._stop_event.set()
-            
-            for t in threads:
-                t.join(timeout=1.0)
-            
-            logger.info("Stage 1: Capture process finished")
+            ).start()
             
