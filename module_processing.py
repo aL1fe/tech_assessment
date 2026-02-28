@@ -6,7 +6,7 @@ from queue import Empty
 import numpy as np
 from multiprocessing import Queue
 from multiprocessing.synchronize import Event
-from shared_ring_buffer import CameraBuffer
+from ring_buffer import RingBuffer
 from config import settings
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [Processing] %(message)s')
@@ -37,7 +37,7 @@ class ProcessingModule:
                 frame_num = metadata["frame_num"]
 
                 # Get frame from shared memory buffer
-                buffer = CameraBuffer(cam_id, capacity=10, shape=(settings.HEIGHT, settings.WIDTH, settings.CHANNELS))
+                buffer = RingBuffer(cam_id, capacity=10, shape=(settings.HEIGHT, settings.WIDTH, settings.CHANNELS))
                 frame = buffer.get_frame(slot)
 
                 # start_proc = time.time()

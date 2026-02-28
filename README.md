@@ -1,6 +1,6 @@
-How to launch the app on Windows.
-Launch script startup.ps1 to install dependencies.
-Launch run.ps1 to launch the app.
+# How to launch the app on Windows.
+Launch script `startup.ps1` to install dependencies.
+Launch `run.ps1` to launch the app.
 
 
 Shared Memory Ring Buffer instead of Queue
@@ -16,14 +16,16 @@ Frame overproduction issue: With 4 cameras at 15 FPS, Capture produces ~60 frame
 Alternative (Queue): Would be slow due to pickle overhead for 25MB frames
 
 
-Queue for metadata
+Queue for metadata, should be removed and the metadata should be stored in Shared Memory near with frame.
 Chosen solution: multiprocessing.Queue for transmitting timestamp, frame_id, slot_index
 Rationale:
 Small size: Metadata (~100 bytes) is efficiently serialized
 Thread-safe: Automatic synchronization of access between processes
 
 
-IMPORTANT!
-For a production solution, the optimal approach is to use 'Linux tmpfs' for storing frames in memory. This provides zero-copy access to frames between processes, minimizes disk I/O operations, and ensures high throughput when transferring large 4K data arrays.
-In tmpfs, its size can be limited and a ring buffer can be implemented at the application level, preserving the benefits of high-speed access and zero-copy.
-mount -t tmpfs -o size=1G tmpfs /mnt/frame_buffer
+# IMPORTANT
+For a production solution, the optimal approach is to use Linux `tmpfs` for storing frames in RAM. This provides zero-copy access to frames between processes, minimizes disk I/O operations, and ensures high throughput when transferring large 4K data arrays.
+
+In `tmpfs`, its size can be limited and a ring buffer can be implemented at the file system level, preserving the benefits of kernel-space high-speed access and zero-copy.
+
+`mount -t tmpfs -o size=1G tmpfs /mnt/application/cam{0,1,2,3}`

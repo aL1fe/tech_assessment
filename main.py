@@ -1,17 +1,18 @@
 import logging
+import signal
 from multiprocessing import synchronize, Queue, Process, Event
 
-from capture import CaptureModule
-from processing import ProcessingModule
-from reporter import ReporterModule
+from module_capture import CaptureModule
+from module_processing import ProcessingModule
+from module_reporter import ReporterModule
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [Main] %(message)s')
 logger = logging.getLogger("Main")
 
 
-def run_stage1_capture(metadata_queue):
-    capture = CaptureModule(metadata_queue=metadata_queue)
+def run_stage1_capture(metadata_queue: Queue, stop_event: synchronize.Event):
+    capture = CaptureModule(metadata_queue, stop_event)
     capture.run()
 
 
@@ -23,28 +24,25 @@ def run_stage2_processing(metadata_queue: Queue, result_queue: Queue, stop_event
 def run_stage3_reporter(result_queue: Queue, stop_event: synchronize.Event):
     reporter = ReporterModule(result_queue, stop_event)
     reporter.run()
-    
-
-def shutdown_process(proc, queue):
-    if proc.is_alive():
-        logger.info(f"Terminating {proc.name}...")
-        queue.close()
-        queue.cancel_join_thread() 
-        
-        proc.terminate()
-        proc.join(timeout=2)
-        if proc.is_alive():
-            proc.kill()
-
+   
 
 def main():
     stop_event = Event()
+    def stop_gracefully(signum=None, frame=None):
+        logger.info("Pipeline is stopping...")
+        stop_event.set()
+        for p in [capture_process, processing_process, reporter_process]:
+            p.join()
+        logger.info("All processes stopped.")
+    signal.signal(signal.SIGTERM, stop_gracefully)
+    signal.signal(signal.SIGINT, stop_gracefully)
+
     metadata_queue = Queue(maxsize=100)
     result_queue = Queue(maxsize=100)
 
     capture_process = Process(
         target=run_stage1_capture,
-        args=(metadata_queue,),
+        args=(metadata_queue, stop_event,),
         name="CaptureProcess"
     )
     
@@ -72,16 +70,8 @@ def main():
 
         while capture_process.is_alive():
             capture_process.join(timeout=1.0)
-
-    except KeyboardInterrupt:
-        logger.info("[Main] Stopping...")
-
     finally:
-        stop_event.set()
-        shutdown_process(capture_process, metadata_queue)  
-        shutdown_process(processing_process, metadata_queue)   
-        shutdown_process(reporter_process, result_queue) 
-        logger.info("Pipeline stopped.")
+        stop_gracefully()
        
 
 if __name__ == "__main__":

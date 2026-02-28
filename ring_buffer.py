@@ -2,7 +2,7 @@ import numpy as np
 from multiprocessing import shared_memory, Value, Semaphore
 
 
-class CameraBuffer:
+class RingBuffer:
     def __init__(self, camera_id: str, capacity: int, shape: tuple):
         self.camera_id = camera_id
         self.capacity = capacity

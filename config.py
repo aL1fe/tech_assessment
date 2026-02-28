@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     # Cameras config
     BASE_DELAY: int = 1  # Base delay before reconnect (s)
     MAX_DELAY: int = 30   # Max delay before reconnect (s)
-    STABLE_THRESHOLD: int = 300  # Threshold time for normal camera operation (s)
+    MAX_RECONNECT: int = 10
 
     CAMERA_CFG: dict[str, CameraConfig] = {
         "cam_01": CameraConfig(fps=15),
