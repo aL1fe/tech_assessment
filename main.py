@@ -2,9 +2,9 @@ import logging
 import signal
 from multiprocessing import synchronize, Queue, Process, Event
 
-from capture import CaptureModule
-from processing import ProcessingModule
-from reporter import ReporterModule
+from module_capture import CaptureModule
+from module_processing import ProcessingModule
+from module_reporter import ReporterModule
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [Main] %(message)s')
@@ -34,8 +34,6 @@ def main():
         for p in [capture_process, processing_process, reporter_process]:
             p.join()
         logger.info("All processes stopped.")
-        
-
     signal.signal(signal.SIGTERM, stop_gracefully)
     signal.signal(signal.SIGINT, stop_gracefully)
 

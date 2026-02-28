@@ -5,7 +5,7 @@ from multiprocessing import Queue
 from multiprocessing.synchronize import Event
 
 from fake_camera import FakeCamera, CameraError
-from shared_ring_buffer import CameraBuffer
+from ring_buffer import RingBuffer
 from config import settings
 
 
@@ -20,7 +20,7 @@ class CaptureModule:
 
 
     def _camera_worker(self, camera_id: str, fps: int):
-        buffer = CameraBuffer(camera_id, capacity=10, shape=(settings.HEIGHT, settings.WIDTH, settings.CHANNELS))
+        buffer = RingBuffer(camera_id, capacity=10, shape=(settings.HEIGHT, settings.WIDTH, settings.CHANNELS))
         
         retries = 0
         try:
