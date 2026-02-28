@@ -3,6 +3,7 @@ from multiprocessing import synchronize, Queue, Process, Event
 
 from capture import CaptureModule
 from processing import ProcessingModule
+from reporter import ReporterModule
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [Main] %(message)s')
@@ -14,9 +15,14 @@ def run_stage1_capture(metadata_queue):
     capture.run()
 
 
-def run_stage2_processing(metadata_queue: Queue, stop_event: synchronize.Event):
-    processor = ProcessingModule(metadata_queue, stop_event)
+def run_stage2_processing(metadata_queue: Queue, result_queue: Queue, stop_event: synchronize.Event):
+    processor = ProcessingModule(metadata_queue, result_queue, stop_event)
     processor.run()
+
+
+def run_stage3_reporter(result_queue: Queue, stop_event: synchronize.Event):
+    reporter = ReporterModule(result_queue, stop_event)
+    reporter.run()
     
 
 def shutdown_process(proc, queue):
@@ -34,6 +40,7 @@ def shutdown_process(proc, queue):
 def main():
     stop_event = Event()
     metadata_queue = Queue(maxsize=100)
+    result_queue = Queue(maxsize=100)
 
     capture_process = Process(
         target=run_stage1_capture,
@@ -43,8 +50,14 @@ def main():
     
     processing_process = Process(
         target=run_stage2_processing,
-        args=(metadata_queue, stop_event,),
+        args=(metadata_queue, result_queue, stop_event,),
         name="ProcessingProcess"
+    )
+
+    reporter_process = Process(
+        target=run_stage3_reporter,
+        args=(result_queue, stop_event,),
+        name="ReporterProcess"
     )
 
     try:
@@ -54,7 +67,8 @@ def main():
         processing_process.start()
         logger.info(f"Processing process started (PID: {processing_process.pid})")
 
-        # reporter_process.start()
+        reporter_process.start()
+        logger.info(f"Reporter process started (PID: {reporter_process.pid})")
 
         while capture_process.is_alive():
             capture_process.join(timeout=1.0)
@@ -65,7 +79,8 @@ def main():
     finally:
         stop_event.set()
         shutdown_process(capture_process, metadata_queue)  
-        shutdown_process(processing_process, metadata_queue)    
+        shutdown_process(processing_process, metadata_queue)   
+        shutdown_process(reporter_process, result_queue) 
         logger.info("Pipeline stopped.")
        
 

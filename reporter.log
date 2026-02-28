@@ -1,0 +1,24 @@
+2026-02-28 18:50:07,608 [Reporter] Stage 3: Reporter started
+2026-02-28 18:50:11,182 [Reporter] [cam_01] frame=50 latency=0.111s
+2026-02-28 18:50:12,757 [Reporter] [cam_04] frame=50 latency=0.109s
+2026-02-28 18:50:12,863 [Reporter] [cam_03] frame=50 latency=0.121s
+2026-02-28 18:50:14,546 [Reporter] [cam_01] frame=100 latency=0.107s
+2026-02-28 18:50:16,695 [Reporter] [cam_02] frame=50 latency=0.106s
+2026-02-28 18:50:17,931 [Reporter] [cam_01] frame=150 latency=0.113s
+2026-02-28 18:50:18,038 [Reporter] [cam_04] frame=100 latency=0.212s
+2026-02-28 18:50:18,146 [Reporter] [cam_03] frame=100 latency=0.281s
+2026-02-28 18:50:20,175 [Reporter] [cam_02] frame=100 latency=0.107s
+2026-02-28 18:50:23,087 [Reporter] [cam_03] frame=150 latency=0.105s
+2026-02-28 18:50:23,480 [Reporter] [cam_02] frame=150 latency=0.104s
+2026-02-28 18:50:24,497 [Reporter] [cam_01] frame=50 latency=0.105s
+2026-02-28 18:50:27,341 [Reporter] [cam_04] frame=50 latency=0.106s
+2026-02-28 18:50:27,871 [Reporter] [cam_01] frame=100 latency=0.104s
+2026-02-28 18:50:31,319 [Reporter] [cam_01] frame=150 latency=0.104s
+2026-02-28 18:50:31,737 [Reporter] [cam_03] frame=50 latency=0.104s
+2026-02-28 18:50:32,391 [Reporter] [cam_04] frame=100 latency=0.104s
+2026-02-28 18:50:33,684 [Reporter] [cam_02] frame=50 latency=0.105s
+2026-02-28 18:50:34,774 [Reporter] [cam_01] frame=200 latency=0.105s
+2026-02-28 18:50:36,893 [Reporter] [cam_03] frame=100 latency=0.105s
+2026-02-28 18:50:37,055 [Reporter] [cam_02] frame=100 latency=0.104s
+2026-02-28 18:50:37,334 [Reporter] [cam_04] frame=150 latency=0.104s
+2026-02-28 18:50:38,285 [Reporter] [cam_01] frame=250 latency=0.105s

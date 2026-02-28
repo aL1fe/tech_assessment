@@ -38,6 +38,10 @@ class CaptureModule:
                         if cam.frame_count % settings.FRAME_SUBSAMPLE == 0:
                             slot_idx = buffer.put(frame)
                             
+                            # TODO: Ring buffer overwrites slots in circular order.
+                            # If Processing is slower than Capture, metadata in the queue
+                            # may reference a slot that has already been overwritten.
+                            # Add frame_id validation or backpressure mechanism to prevent stale reads.
                             if not self.metadata_queue.full():
                                 self.metadata_queue.put({
                                     "cam_id": camera_id,
