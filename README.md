@@ -16,11 +16,13 @@ Frame overproduction issue: With 4 cameras at 15 FPS, Capture produces ~60 frame
 Alternative (Queue): Would be slow due to pickle overhead for 25MB frames
 
 
-Queue for metadata, should be removed and the metadata should be stored in Shared Memory near with frame.
 Chosen solution: multiprocessing.Queue for transmitting timestamp, frame_id, slot_index
 Rationale:
 Small size: Metadata (~100 bytes) is efficiently serialized
 Thread-safe: Automatic synchronization of access between processes
+# TODO Queue for metadata, should be removed and the metadata should be stored in Shared Memory near with frame.
+|       ---- HEADER ----       |------ NUMPY ARRAY DATA ------|
+| cam_id | slot| ts| frame_num | int64                        |
 
 
 # IMPORTANT
